@@ -29,7 +29,6 @@ def setup_grid():
             right = left + rect_size
             top = y * rect_size
             bottom = top + rect_size
-            print(left, top, right, bottom)
             setup_rects(0, rect_size, left, right, top, bottom)
 
 
@@ -53,15 +52,12 @@ def setup_rects(step, squer_size, left, right, top, bottom):
         setup_rects(step + 1, squer_size / 2, hmiddle, right, top, vmiddle)
         setup_rects(step + 1, squer_size / 2, left, hmiddle, vmiddle, bottom)
         setup_rects(step + 1, squer_size / 2, hmiddle, right, vmiddle, bottom)
-        print("nope", squer_size, step)
     else:
         color_index = get_color_index()
         r = Rect(
             squer_size, left, top, squer_size, squer_size, color_index, True, False
         )
-        # print(step, left, right, top, bottom, squer_size, color_index)
         rects.append(r)
-        # print('yep', squer_size, step, color_index)
 
 
 def get_color_index():
