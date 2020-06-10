@@ -1,9 +1,9 @@
 # Number of columns and rows in the grid
-window_width = 1280
-window_height = 800
-rect_size = 32
-nCols = (window_width - 2 * rect_size) / rect_size
-nRows = (window_height - 2 * rect_size) / rect_size
+window_width = 1024
+window_height = 768
+rect_size = 256
+nCols = (window_width - 0 * rect_size / 2) / rect_size
+nRows = (window_height - 0 * rect_size / 2) / rect_size
 sizes = [[1, 1], [1, 2], [2, 1], [2, 2]]
 rects = []
 # COLORS = [[230, 64, 64], [230, 166, 41], [32, 140, 134], [196, 188, 167]]
@@ -13,65 +13,58 @@ pressed = False
 
 
 def setup():
-    global nCols, nRows, grid, sizes
+    # global nCols, nRows, grid, sizes
+    global window_height, window_width
     size(window_width, window_height)
-    setup_rects()
+    setup_grid()
 
 
-def setup_rects():
-    global nCols, nRows, grid, sizes, rects, rect_size, COLORS
-
+def setup_grid():
+    global window_height, window_width, nCols, nRows, grid, sizes, rects, rect_size, COLORS
     rects = []
-    grid = makeGrid()
-    for i in xrange(nRows):
-        for j in xrange(nCols):
-            # Initialize each object
-            grid[i][j] = 0
-    old_index = -1
-    for row_index, row in enumerate(grid):
-        for col_index, col in enumerate(row):
-            if free(grid, row_index, col_index):
-                size_index = -1
-                siz = sizes[0]
-                while True:
-                    size_index = get_size()
-                    siz = sizes[size_index]
-                    if row_index + siz[0] <= len(grid) and col_index + siz[1] <= len(
-                        row
-                    ):
-                        if free_grid(grid, row_index, col_index, siz[0], siz[1]):
-                            break
-                    # print('adi', size_index, old_index)
-                    if old_index >= 1 and old_index == size_index:
-                        continue
-                    old_index = size_index
-                # print(row_index, col_index, siz)
-                fill_grid(grid, row_index, col_index, siz[0], siz[1])
-                r = Rect(
-                    rect_size,
-                    row_index,
-                    col_index,
-                    size_index,
-                    siz[1],
-                    siz[0],
-                    True,
-                    False,
-                )
-                rects.append(r)
-                rr = Rect(
-                    rect_size,
-                    row_index,
-                    col_index,
-                    size_index,
-                    siz[1],
-                    siz[0],
-                    False,
-                    True,
-                )
-                rects.append(rr)
+    background(255)
+    for x in range(nCols):
+        for y in range(nRows):
+            left = x * rect_size
+            right = left + rect_size
+            top = y * rect_size
+            bottom = top + rect_size
+            print(left, top, right, bottom)
+            setup_rects(0, rect_size, left, right, top, bottom)
 
 
-def get_size():
+def setup_rects(step, squer_size, left, right, top, bottom):
+    global nCols, nRows, grid, sizes, rects, rect_size, COLORS
+    split = False
+
+    switch = {
+        0 : int(random(100)) > 5,
+        1 : int(random(100)) > 20,
+        2 : int(random(100)) > 30,
+        3 : int(random(100)) > 40,
+        4 : int(random(100)) > 50,
+    }
+    split = switch.get(step, False)
+
+    if split:
+        hmiddle = left + (right - left) / 2
+        vmiddle = top + (bottom - top) / 2
+        setup_rects(step + 1, squer_size / 2, left, hmiddle, top, vmiddle)
+        setup_rects(step + 1, squer_size / 2, hmiddle, right, top, vmiddle)
+        setup_rects(step + 1, squer_size / 2, left, hmiddle, vmiddle, bottom)
+        setup_rects(step + 1, squer_size / 2, hmiddle, right, vmiddle, bottom)
+        print("nope", squer_size, step)
+    else:
+        color_index = get_color_index()
+        r = Rect(
+            squer_size, left, top, squer_size, squer_size, color_index, True, False
+        )
+        # print(step, left, right, top, bottom, squer_size, color_index)
+        rects.append(r)
+        # print('yep', squer_size, step, color_index)
+
+
+def get_color_index():
     number = random(100)
     if number > 90:
         return 3
@@ -115,17 +108,17 @@ def makeGrid():
 
 
 class Rect:
-    def __init__(self, siz, row, col, index, w, h, dofill, dostroke):
+    def __init__(self, siz, left, top, w, h, color_index, dofill, dostroke):
         # self.color = ()
-        global COLORS, rect_size
-        outer_margin = rect_size
-        inner_margin = rect_size // 6
-        tolerance = inner_margin // 2 + 1
+        global COLORS
+        outer_margin = 0
+        inner_margin = 2
+        tolerance = 0
 
-        x1 = outer_margin + col * siz + inner_margin
-        y1 = outer_margin + row * siz + inner_margin
-        x2 = outer_margin + (col + w) * siz - inner_margin
-        y2 = outer_margin + (row + h) * siz - inner_margin
+        x1 = outer_margin + left + inner_margin
+        y1 = outer_margin + top + inner_margin
+        x2 = outer_margin + left + w - inner_margin
+        y2 = outer_margin + top + h - inner_margin
 
         x3 = x2 + int(random(tolerance * 2) - tolerance)
         y3 = y1 + int(random(tolerance * 2) - tolerance)
@@ -151,7 +144,7 @@ class Rect:
             self.s.fill(COLORS[index][0], COLORS[index][1], COLORS[index][2])
         else:
             self.s.noFill()
-
+        # print(x1, y1, x3, y3, x2, y2, x4, y4)
         self.s.vertex(x1, y1)
         self.s.vertex(x3, y3)
         self.s.vertex(x2, y2)
@@ -174,7 +167,7 @@ def draw():
     background(255)
     if keyPressed:
         if not pressed:
-            setup_rects()
+            setup_grid()
             pressed = True
         else:
             pressed = False
